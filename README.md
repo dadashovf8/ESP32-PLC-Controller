@@ -59,7 +59,7 @@ flowchart TB
 ### Power tree
 
 ```mermaid
-flowchart LR
+flowchart TB
     DC["12 V DC jack<br/>DC1"] --> SW["Power switch<br/>U70"] --> V12["12 V rail"]
     V12 --> BUCK["LM2596-5.0 buck<br/>U39"] --> V5["5 V rail"]
     V5 --> LDO["TL1963A-3.3 LDO<br/>U45"] --> V33["3.3 V rail"]
