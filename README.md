@@ -37,24 +37,36 @@ Designed in **EasyEDA Pro**. 4-layer board, 160.9 × 91.2 mm.
 ## Block diagram
 
 ```mermaid
-flowchart LR
-    DC["12 V DC jack"] --> SW["Power switch"] --> V12(("12 V"))
-    V12 --> BUCK["LM2596 buck"] --> V5(("5 V"))
-    V5 --> LDO["TL1963A LDO"] --> V33(("3.3 V"))
+flowchart TB
+    IN["10 digital inputs<br/>H1, H2"] --> OIN["PC817 ×10"]
+    OIN --> X38["PCF8574A @ 0x38<br/>inputs 0–7"]
+    OIN --> X3A["PCF8574A @ 0x3A<br/>inputs 8–9 · outputs 8–9"]
 
-    ESP["ESP32-DevKitC"]
-    ESP -- "I²C (GPIO21/22)" --> EXP_IN["PCF8574A @0x38<br/>inputs 0-7"]
-    ESP -- "I²C" --> EXP_MIX["PCF8574A @0x3A<br/>inputs 8-9, outputs 8-9"]
-    ESP -- "I²C" --> EXP_OUT["PCF8574A @0x39<br/>outputs 0-7"]
+    X38 <-- "I²C" --> ESP["ESP32-DevKitC"]
+    X3A <-- "I²C" --> ESP
+    ESP <-- "I²C" --> X39["PCF8574A @ 0x39<br/>outputs 0–7"]
 
-    IN["10 inputs<br/>(H1, H2)"] --> OPTO_IN["PC817 ×10"] --> EXP_IN & EXP_MIX
-    EXP_OUT & EXP_MIX --> OPTO_OUT["PC817 ×10"] --> DRV["2N2222A ×10<br/>+ 1N4007"] --> RLY["Relays ×10<br/>COM / NO terminals"]
-    V12 --> DRV
-
-    ESP -- "I²S" --> AMP["MAX98357A"] --> SPK["Speaker"]
-    MIC["ICS-43434"] -- "I²S" --> ESP
+    MIC["ICS-43434<br/>MEMS microphone"] -- "I²S" --> ESP
+    ESP -- "I²S" --> AMP["MAX98357A<br/>class-D amplifier"] --> SPK["Speaker"]
     ESP -- "UART" --> DISP["Display port"]
-    ESP -- "UART / SPI / I²C" --> EXT["JST-PH expansion"]
+    ESP -- "UART · SPI · I²C" --> EXT["JST-PH expansion"]
+
+    X39 --> OOUT["PC817 ×10"]
+    X3A --> OOUT
+    OOUT --> DRV["2N2222A + 1N4007 ×10"] --> RLY["Relays ×10<br/>COM / NO terminals"]
+```
+
+### Power tree
+
+```mermaid
+flowchart LR
+    DC["12 V DC jack<br/>DC1"] --> SW["Power switch<br/>U70"] --> V12["12 V rail"]
+    V12 --> BUCK["LM2596-5.0 buck<br/>U39"] --> V5["5 V rail"]
+    V5 --> LDO["TL1963A-3.3 LDO<br/>U45"] --> V33["3.3 V rail"]
+
+    V12 --> L12["Relay coils ×10<br/>Output optocoupler collectors"]
+    V5 --> L5["ESP32 DevKit (5V pin)<br/>Display connector<br/>5 V terminal U69"]
+    V33 --> L33["PCF8574A ×3 · input pull-ups<br/>ICS-43434 · MAX98357A<br/>JST UART / I²C / SPI ports"]
 ```
 
 ## Circuit description
